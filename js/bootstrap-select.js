@@ -2662,37 +2662,49 @@
 
           if (normalizeSearch) q = normalizeToBase(q);
 
-          for (var i = 0; i < that.selectpicker.main.data.length; i++) {
-            var li = that.selectpicker.main.data[i];
+          // Fuse.js support
+          if (searchStyle === 'fusejs') {
+            const fuse = new Fuse(that.selectpicker.main.data, { keys: ['text'], treshold: 0.3 });
+            const result = fuse.search(q);
 
-            if (!cache[i]) {
-              cache[i] = stringSearch(li, q, searchStyle, normalizeSearch);
+            for (var i = 0; i < result.length; i++) {
+              that.selectpicker.search.data.push(that.selectpicker.main.data[result[i].refIndex]);
+              searchMatch.push(that.selectpicker.main.elements[result[i].refIndex]);
             }
+            // TODO force hide "alle netnummers"
+          } else {
+            for (var i = 0; i < that.selectpicker.main.data.length; i++) {
+              var li = that.selectpicker.main.data[i];
 
-            if (cache[i] && li.headerIndex !== undefined && cacheArr.indexOf(li.headerIndex) === -1) {
-              if (li.headerIndex > 0) {
-                cache[li.headerIndex - 1] = true;
-                cacheArr.push(li.headerIndex - 1);
+              if (!cache[i]) {
+                cache[i] = stringSearch(li, q, searchStyle, normalizeSearch);
               }
 
-              cache[li.headerIndex] = true;
-              cacheArr.push(li.headerIndex);
+              if (cache[i] && li.headerIndex !== undefined && cacheArr.indexOf(li.headerIndex) === -1) {
+                if (li.headerIndex > 0) {
+                  cache[li.headerIndex - 1] = true;
+                  cacheArr.push(li.headerIndex - 1);
+                }
 
-              cache[li.lastIndex + 1] = true;
+                cache[li.headerIndex] = true;
+                cacheArr.push(li.headerIndex);
+
+                cache[li.lastIndex + 1] = true;
+              }
+
+              if (cache[i] && li.type !== 'optgroup-label') cacheArr.push(i);
             }
 
-            if (cache[i] && li.type !== 'optgroup-label') cacheArr.push(i);
-          }
-
-          for (var i = 0, cacheLen = cacheArr.length; i < cacheLen; i++) {
-            var index = cacheArr[i],
+            for (var i = 0, cacheLen = cacheArr.length; i < cacheLen; i++) {
+              var index = cacheArr[i],
                 prevIndex = cacheArr[i - 1],
                 li = that.selectpicker.main.data[index],
                 liPrev = that.selectpicker.main.data[prevIndex];
 
-            if (li.type !== 'divider' || (li.type === 'divider' && liPrev && liPrev.type !== 'divider' && cacheLen - 1 !== i)) {
-              that.selectpicker.search.data.push(li);
-              searchMatch.push(that.selectpicker.main.elements[index]);
+              if (li.type !== 'divider' || (li.type === 'divider' && liPrev && liPrev.type !== 'divider' && cacheLen - 1 !== i)) {
+                that.selectpicker.search.data.push(li);
+                searchMatch.push(that.selectpicker.main.elements[index]);
+              }
             }
           }
 
