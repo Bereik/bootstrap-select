@@ -1523,6 +1523,7 @@
 
           config.content = option.getAttribute('data-content');
           config.tokens = option.getAttribute('data-tokens');
+          config.weight = option.getAttribute('data-weight');
           config.subtext = option.getAttribute('data-subtext');
           config.icon = option.getAttribute('data-icon');
 
@@ -2667,11 +2668,14 @@
             const fuse = new Fuse(that.selectpicker.main.data, { keys: ['text'], treshold: 0.3 });
             const result = fuse.search(q);
 
+            result.sort(function(a, b) {
+                return b.item.weight - a.item.weight;
+            });
+
             for (var i = 0; i < result.length; i++) {
               that.selectpicker.search.data.push(that.selectpicker.main.data[result[i].refIndex]);
               searchMatch.push(that.selectpicker.main.elements[result[i].refIndex]);
             }
-            // TODO force hide "alle netnummers"
           } else {
             for (var i = 0; i < that.selectpicker.main.data.length; i++) {
               var li = that.selectpicker.main.data[i];
